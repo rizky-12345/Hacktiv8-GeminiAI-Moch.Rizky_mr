@@ -5,6 +5,7 @@ import multer from 'multer';
 import { GoogleGenAI } from '@google/genai';
 
 
+
 import 'dotenv/config';
 
 // mulai persiapkan project kita
@@ -69,5 +70,29 @@ app.post('/chat',
 // entry point nya
 
 app.listen(3000, () => {
-    console.log('I LOVE UU')
+    console.log('INI ENDPOINT 1')
+});
+
+
+// 2. Generate From Image
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+app.post('/generate-from-image', upload.single('image'), async (req, res) => {
+    try {
+        const { prompt } = req.body;
+        const imageBase64 = req.file.buffer.toString('base64');
+        const resp = await ai.models.generateContent({
+            model: GEMINI_MODEL,
+            contents: [
+                { text: prompt },
+                { inlineData: { mimeType: req.file.mimetype, data: imageBase64 } }
+            ]
+        });
+        res.json({ result: extractText(resp) });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+app.listen(3000, () => {
+    console.log('INI ENDPOINT 2')
 });
